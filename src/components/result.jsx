@@ -9,17 +9,9 @@ class Result extends Component {
     const currentEntry = this.props.location.state.data.current;
     const newEntry = this.props.location.state.data.new;
 
-    const currentEntrySucced = currentEntry.timeInterval
-      ? currentEntry.timeInterval
-      : null;
-    const currentEntryError = currentEntry.data ? currentEntry.data : null;
-
-    const newEntrySucced = newEntry.timeInterval ? newEntry.timeInterval : null;
-    const newEntryError = newEntry.data ? newEntry.data : null;
-
     const dataDisplay = {
-      current: { succed: currentEntrySucced, error: currentEntryError },
-      new: { succed: newEntrySucced, error: newEntryError },
+      current: { succed: currentEntry.timeInterval, error: currentEntry.data },
+      new: { succed: newEntry.timeInterval, error: newEntry.data },
     };
 
     return (
