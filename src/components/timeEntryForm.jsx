@@ -51,7 +51,7 @@ class TimeEntryForm extends Form {
 
   doSubmit = async () => {
     const data = this.state.data;
-    let rollBackMinutes = data.hours * 60 + data.minutes;
+    let rollBackMinutes = parseInt(data.hours) * 60 + parseInt(data.minutes);
 
     let rollback = false;
     if (rollBackMinutes) rollback = true;
