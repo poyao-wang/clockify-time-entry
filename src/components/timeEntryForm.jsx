@@ -99,18 +99,50 @@ class TimeEntryForm extends Form {
     });
   };
 
+  createArrayForOptions = (amt) => {
+    let arrayOptions = [];
+    for (let i = 0; i < amt; i++) {
+      arrayOptions[i] = { _id: i, name: i };
+    }
+
+    return arrayOptions;
+  };
+
   render() {
+    const optionsHours = this.createArrayForOptions(25);
+    const optionsMinutes = this.createArrayForOptions(60);
+
     return (
       <div>
         <h1>New Time Entry</h1>
         <form onSubmit={this.handleSubmit}>
           <div className="m-2">{this.renderButton("Submit")}</div>
-          {this.renderInput("hours", "hours")}
-          {this.renderInput("minutes", "minutes")}
-          {this.renderInput("description", "description")}
-          {this.renderInput("projectId", "projectId")}
-          {this.renderInput("taskId", "taskId")}
-          {this.renderInput("tagId", "tagId")}
+          <div className="container">
+            <div className="row">
+              <div className="col">
+                {" "}
+                {this.renderSelect("hours", "hours", optionsHours)}
+              </div>
+              <div className="col">
+                {" "}
+                {this.renderSelect("minutes", "minutes", optionsMinutes)}
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                {this.renderInput("description", "description")}
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                {this.renderInput("projectId", "projectId")}
+              </div>
+              <div className="col">{this.renderInput("taskId", "taskId")}</div>
+              <div className="col">{this.renderInput("tagId", "tagId")}</div>
+            </div>
+          </div>
+          {/* {this.renderInput("hours", "hours")}
+          {this.renderInput("minutes", "minutes")} */}
         </form>
       </div>
     );
