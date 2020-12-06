@@ -15,6 +15,8 @@ function App() {
           render={(props) => <TimeEntry {...props} />}
         />
         <Route path="/result" render={(props) => <Result {...props} />} />
+        <Redirect from="/" exact to="/time-entry" />
+        <Redirect to="/time-entry" />
       </Switch>
     </main>
   );
