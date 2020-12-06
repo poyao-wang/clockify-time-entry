@@ -6,22 +6,33 @@ import TimeEntry from "./timeEntry";
 class Result extends Component {
   state = {};
   render() {
-    const currentEntry = this.props.location.state.data.current;
-    const newEntry = this.props.location.state.data.new;
+    const state = this.props.location.state;
+    let dataDisplay;
 
-    const dataDisplay = {
-      current: { succed: currentEntry.timeInterval, error: currentEntry.data },
-      new: { succed: newEntry.timeInterval, error: newEntry.data },
-    };
+    if (state) {
+      const currentEntry = this.props.location.state.data.current;
+      const newEntry = this.props.location.state.data.new;
+
+      dataDisplay = {
+        current: {
+          succed: currentEntry.timeInterval,
+          error: currentEntry.data,
+        },
+        new: { succed: newEntry.timeInterval, error: newEntry.data },
+      };
+    } else {
+      dataDisplay = "404 not found";
+    }
 
     return (
       <div className="container">
         <div className="row">
-          {/* <JSONPretty
-            id="json-pretty"
-            data={this.props.location.state.data}
-          ></JSONPretty> */}
-          <JSONPretty id="json-pretty2" data={dataDisplay}></JSONPretty>
+          <div className="col">
+            {state && (
+              <JSONPretty id="json-pretty2" data={dataDisplay}></JSONPretty>
+            )}
+            {!state && dataDisplay}
+          </div>
         </div>
       </div>
     );
