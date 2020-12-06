@@ -68,10 +68,8 @@ class TimeEntryForm extends Form {
     let resultNew;
 
     try {
-      if (rollback) resultCurrent = await service.stopCurrent({ end: start });
-      else resultCurrent.data = "roll back = 0";
+      resultCurrent = await service.stopCurrent({ end: start });
     } catch (error) {
-      console.log(error);
       resultCurrent = {
         status: error.response.status,
         data: error.response.data,
