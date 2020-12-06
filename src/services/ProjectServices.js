@@ -100,4 +100,5 @@ class ProjectServices {
   }
 }
 
-module.exports = ProjectServices;
+// module.exports = ProjectServices;
+export default ProjectServices;

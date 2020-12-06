@@ -39,4 +39,5 @@ class TimeEntryServices {
   }
 }
 
-module.exports = TimeEntryServices;
+// module.exports = TimeEntryServices;
+export default TimeEntryServices;

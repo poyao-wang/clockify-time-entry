@@ -79,4 +79,5 @@ class TaskServices {
   }
 }
 
-module.exports = TaskServices;
+// module.exports = TaskServices;
+export default TaskServices;
