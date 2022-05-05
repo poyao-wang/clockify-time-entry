@@ -1,12 +1,25 @@
 import React from "react";
 
-const Select = ({ name, label, options, error, ...rest }) => {
+interface SelectProps {
+  name: any; //TODO: fix any
+  label: any; //TODO: fix any
+  options: [any]; //TODO: fix any
+  error: any; //TODO: fix any
+}
+
+const Select: React.FC<SelectProps> = ({
+  name,
+  label,
+  options,
+  error,
+  ...rest
+}) => {
   return (
     <div className="form-group">
       <label htmlFor={name}>{label}</label>
       <select name={name} id={name} {...rest} className="form-control">
         <option value="" />
-        {options.map(option => (
+        {options.map((option) => (
           <option key={option._id} value={option._id}>
             {option.name}
           </option>
