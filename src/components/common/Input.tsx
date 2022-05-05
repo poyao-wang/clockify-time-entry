@@ -1,6 +1,12 @@
 import React from "react";
 
-const Input = ({ name, label, error, ...rest }) => {
+interface InputProps {
+  name: any; //TODO: fix any
+  label: any; //TODO: fix any
+  error: any; //TODO: fix any
+}
+
+const Input: React.FC<InputProps> = ({ name, label, error, ...rest }) => {
   return (
     <div className="form-group">
       <label htmlFor={name}>{label}</label>
