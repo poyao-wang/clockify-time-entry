@@ -13,6 +13,7 @@
     "@types/react-router-dom": "^5.3.3",
     "axios": "^0.21.0",
     "bootstrap": "^4.5.3",
+    "joi": "^17.6.0",
     "joi-browser": "^13.4.0",
     "query-string": "^6.13.7",
     "react": "^17.0.1",
@@ -46,5 +47,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/joi": "^17.2.3"
   }
 }
