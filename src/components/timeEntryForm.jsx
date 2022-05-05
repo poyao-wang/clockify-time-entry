@@ -1,6 +1,6 @@
 import Joi from "joi-browser";
 import queryString from "query-string";
-import React, { Component } from "react";
+import React, { useState } from "react";
 
 import TimeEntryServices from "../services/TimeEntryServices";
 
@@ -14,20 +14,15 @@ const userId = config.userId;
 
 const service = new TimeEntryServices(apiKey, workspaceId, userId);
 
-class TimeEntryForm extends Component {
-  state = {
-    data: {
-      projectId: "",
-      taskId: "",
-      tagId: "",
-      description: "",
-      hours: 0,
-      minutes: 0,
-    },
-    errors: {},
-  };
+const TimeEntryForm = (props) => {
+  const {
+    projectId: projectIdInit,
+    taskId: taskIdInit,
+    tagId: tagIdInit,
+    description: descriptionInit,
+  } = queryString.parse(props.location.search);
 
-  schema = {
+  const schema = {
     projectId: Joi.string().optional(),
     taskId: Joi.string().optional(),
     tagId: Joi.string().optional(),
@@ -36,23 +31,21 @@ class TimeEntryForm extends Component {
     minutes: Joi.number().required(),
   };
 
-  componentDidMount() {
-    const query = queryString.parse(this.props.location.search);
-    const projectId = query.projectId;
-    const taskId = query.taskId;
-    const tagId = query.tagId;
-    const description = query.description;
-    const hours = 0;
-    const minutes = 0;
+  const [state, setState] = useState({
+    data: {
+      projectId: projectIdInit,
+      taskId: taskIdInit,
+      tagId: tagIdInit,
+      description: descriptionInit,
+      hours: 0,
+      minutes: 0,
+    },
+    errors: {},
+  });
 
-    this.setState({
-      data: { projectId, taskId, tagId, description, hours, minutes },
-    });
-  }
-
-  validate = () => {
+  const validate = () => {
     const options = { abortEarly: false };
-    const { error } = Joi.validate(this.state.data, this.schema, options);
+    const { error } = Joi.validate(state.data, schema, options);
     if (!error) return null;
 
     const errors = {};
@@ -60,79 +53,97 @@ class TimeEntryForm extends Component {
     return errors;
   };
 
-  validateProperty = ({ name, value }) => {
+  const validateProperty = ({ name, value }) => {
     const obj = { [name]: value };
-    const schema = { [name]: this.schema[name] };
-    const { error } = Joi.validate(obj, schema);
+    const localSchema = { [name]: schema[name] };
+    const { error } = Joi.validate(obj, localSchema);
     return error ? error.details[0].message : null;
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    const errors = this.validate();
-    this.setState({ errors: errors || {} });
+    const errors = validate();
+    setState({ errors: errors || {} });
     if (errors) return;
 
-    this.doSubmit();
+    doSubmit();
   };
 
-  handleChange = ({ currentTarget: input }) => {
-    const errors = { ...this.state.errors };
-    const errorMessage = this.validateProperty(input);
+  const handleChange = ({ currentTarget: input }) => {
+    const errors = { ...state.errors };
+    const errorMessage = validateProperty(input);
     if (errorMessage) errors[input.name] = errorMessage;
     else delete errors[input.name];
 
-    const data = { ...this.state.data };
+    const data = { ...state.data };
     data[input.name] = input.value;
 
-    this.setState({ data, errors });
+    setState({ data, errors });
   };
 
-  renderButton(label) {
+  const renderButton = (label) => {
     return (
-      <button disabled={this.validate()} className="btn btn-primary">
+      <button disabled={validate()} className="btn btn-primary">
         {label}
       </button>
     );
-  }
+  };
 
-  renderSelect(name, label, options) {
-    const { data, errors } = this.state;
+  const renderSelect = (name, label, options) => {
+    const { data, errors } = state;
+
+    let value;
+
+    console.log(data);
+    if (data) {
+      value = data[name];
+    } else {
+      value = 0;
+    }
 
     return (
       <Select
         name={name}
-        value={data[name]}
+        value={value}
         label={label}
         options={options}
-        onChange={this.handleChange}
+        onChange={handleChange}
         error={errors[name]}
       />
     );
-  }
+  };
 
-  renderInput(name, label, type = "text") {
-    const { data, errors } = this.state;
+  const renderInput = (name, label, type = "text") => {
+    const { data, errors } = state;
+
+    let value;
+
+    console.log(data);
+    if (data) {
+      value = data[name];
+    } else {
+      value = "";
+    }
 
     return (
       <Input
         type={type}
         name={name}
-        value={data[name]}
+        value={value}
         label={label}
-        onChange={this.handleChange}
+        onChange={handleChange}
         error={errors[name]}
       />
     );
-  }
+  };
 
-  doSubmit = async () => {
-    const data = this.state.data;
+  const doSubmit = async () => {
+    const data = state.data;
     let rollBackMinutes = parseInt(data.hours) * 60 + parseInt(data.minutes);
 
-    let rollback = false;
-    if (rollBackMinutes) rollback = true;
+    // let rollback = false;
+    // if (rollBackMinutes) rollback = true;
 
     const now = new Date().setSeconds(0, 0);
 
@@ -165,9 +176,7 @@ class TimeEntryForm extends Component {
 
     const result = { current: resultCurrent, new: resultNew };
 
-    console.log(this.state.data);
-
-    this.props.history.push({
+    props.history.push({
       pathname: "/result",
       state: {
         data: result,
@@ -175,7 +184,7 @@ class TimeEntryForm extends Component {
     });
   };
 
-  createArrayForOptions = (amt) => {
+  const createArrayForOptions = (amt) => {
     let arrayOptions = [];
     for (let i = 0; i < amt; i++) {
       arrayOptions[i] = { _id: i, name: i };
@@ -184,45 +193,41 @@ class TimeEntryForm extends Component {
     return arrayOptions;
   };
 
-  render() {
-    const optionsHours = this.createArrayForOptions(25);
-    const optionsMinutes = this.createArrayForOptions(60);
+  const optionsHours = createArrayForOptions(25);
+  const optionsMinutes = createArrayForOptions(60);
 
-    return (
-      <div>
-        <h1>New Time Entry</h1>
-        <form onSubmit={this.handleSubmit}>
-          <div className="m-2">{this.renderButton("Submit")}</div>
-          <div className="container">
-            <div className="row">
-              <div className="col">
-                {" "}
-                {this.renderSelect("hours", "hours", optionsHours)}
-              </div>
-              <div className="col">
-                {" "}
-                {this.renderSelect("minutes", "minutes", optionsMinutes)}
-              </div>
+  return (
+    <div>
+      <h1>New Time Entry</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="m-2">{renderButton("Submit")}</div>
+        <div className="container">
+          <div className="row">
+            <div className="col">
+              {" "}
+              {renderSelect("hours", "hours", optionsHours)}
             </div>
-            <div className="row">
-              <div className="col">
-                {this.renderInput("description", "description")}
-              </div>
-            </div>
-            <div className="row">
-              <div className="col">
-                {this.renderInput("projectId", "projectId")}
-              </div>
-              <div className="col">{this.renderInput("taskId", "taskId")}</div>
-              <div className="col">{this.renderInput("tagId", "tagId")}</div>
+            <div className="col">
+              {" "}
+              {renderSelect("minutes", "minutes", optionsMinutes)}
             </div>
           </div>
-          {/* {this.renderInput("hours", "hours")}
-          {this.renderInput("minutes", "minutes")} */}
-        </form>
-      </div>
-    );
-  }
-}
+          <div className="row">
+            <div className="col">
+              {renderInput("description", "description")}
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">{renderInput("projectId", "projectId")}</div>
+            <div className="col">{renderInput("taskId", "taskId")}</div>
+            <div className="col">{renderInput("tagId", "tagId")}</div>
+          </div>
+        </div>
+        {/* {renderInput("hours", "hours")}
+          {renderInput("minutes", "minutes")} */}
+      </form>
+    </div>
+  );
+};
 
 export default TimeEntryForm;
