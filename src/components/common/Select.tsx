@@ -3,8 +3,13 @@ import React from "react";
 interface SelectProps {
   name: any; //TODO: fix any
   label: any; //TODO: fix any
-  options: [any]; //TODO: fix any
+  options: {
+    _id: number;
+    name: number;
+  }[]; //TODO: fix any
   error: any; //TODO: fix any
+  value: any; //TODO: fix any
+  onChange: any; //TODO: fix any
 }
 
 const Select: React.FC<SelectProps> = ({

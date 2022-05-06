@@ -1,12 +1,14 @@
-import Joi from "joi-browser";
+import Joi, { ObjectSchema } from "joi";
 import queryString from "query-string";
-import React, { useState } from "react";
+import React, { EventHandler, FormEvent, useState } from "react";
 
 import TimeEntryServices from "../services/TimeEntryServices";
 
 import config from "../config.json";
 import Select from "./common/Select";
 import Input from "./common/Input";
+import { RouteComponentProps } from "react-router-dom";
+import { AxiosError } from "axios";
 
 const apiKey = config.apiKey;
 const workspaceId = config.workspaceId;
@@ -14,7 +16,24 @@ const userId = config.userId;
 
 const service = new TimeEntryServices(apiKey, workspaceId, userId);
 
-const TimeEntryForm = (props) => {
+type Errors = {
+  projectId?: any;
+  taskId?: any;
+  tagId?: any;
+  description?: any;
+  hours?: any;
+  minutes?: any;
+};
+
+type DataKeys =
+  | "projectId"
+  | "taskId"
+  | "tagId"
+  | "description"
+  | "hours"
+  | "minutes";
+
+const TimeEntryForm = (props: RouteComponentProps) => {
   const {
     projectId: projectIdInit,
     taskId: taskIdInit,
@@ -22,16 +41,26 @@ const TimeEntryForm = (props) => {
     description: descriptionInit,
   } = queryString.parse(props.location.search);
 
-  const schema = {
+  const schema = Joi.object({
     projectId: Joi.string().optional(),
     taskId: Joi.string().optional(),
     tagId: Joi.string().optional(),
     description: Joi.optional(),
     hours: Joi.number().required(),
     minutes: Joi.number().required(),
-  };
+  });
 
-  const [state, setState] = useState({
+  const [state, setState] = useState<{
+    data: {
+      projectId: string | string[] | null;
+      taskId: string | string[] | null;
+      tagId: string | string[] | null;
+      description: string | string[] | null;
+      hours: number;
+      minutes: number;
+    };
+    errors: Errors;
+  }>({
     data: {
       projectId: projectIdInit,
       taskId: taskIdInit,
@@ -45,57 +74,85 @@ const TimeEntryForm = (props) => {
 
   const validate = () => {
     const options = { abortEarly: false };
-    const { error } = Joi.validate(state.data, schema, options);
+    const { error } = schema.validate(state.data);
     if (!error) return null;
 
-    const errors = {};
-    for (let item of error.details) errors[item.path[0]] = item.message;
+    const errors: Errors = {};
+    for (let item of error.details)
+      errors[item.path[0] as keyof Errors] = item.message;
     return errors;
   };
 
-  const validateProperty = ({ name, value }) => {
+  const validateProperty = ({
+    name,
+    value,
+  }: {
+    name: string | number;
+    value: any;
+  }) => {
     const obj = { [name]: value };
-    const localSchema = { [name]: schema[name] };
-    const { error } = Joi.validate(obj, localSchema);
-    return error ? error.details[0].message : null;
+    const localSchema = { [name]: schema[name as keyof typeof schema] };
+    console.log(schema);
+    if (Joi.isSchema(localSchema)) {
+      const { error } = localSchema.validate(obj);
+      return error ? error.details[0].message : null;
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     const errors = validate();
-    setState({ errors: errors || {} });
-    if (errors) return;
+    // setState({ errors: errors || {} });
+    if (errors) {
+      state.errors = errors;
+      setState(state);
+      return;
+    }
 
     doSubmit();
   };
 
-  const handleChange = ({ currentTarget: input }) => {
-    const errors = { ...state.errors };
+  const handleChange = ({ currentTarget: input }: any) => {
+    const errors = { ...state.errors }; //TODO: Error messages not shown problem
     const errorMessage = validateProperty(input);
-    if (errorMessage) errors[input.name] = errorMessage;
-    else delete errors[input.name];
-
+    if (errorMessage) errors[input.name as keyof Errors] = errorMessage;
+    else delete errors[input.name as keyof Errors];
     const data = { ...state.data };
-    data[input.name] = input.value;
-
+    data[input.name as keyof Errors] = input.value;
     setState({ data, errors });
   };
 
-  const renderButton = (label) => {
+  const renderButton = (label: string) => {
+    const errorExists = validate();
+
+    let disabled: boolean;
+
+    if (errorExists) {
+      disabled = true;
+    } else {
+      disabled = false;
+    }
+
     return (
-      <button disabled={validate()} className="btn btn-primary">
+      <button disabled={disabled} className="btn btn-primary">
         {label}
       </button>
     );
   };
 
-  const renderSelect = (name, label, options) => {
+  const renderSelect = (
+    name: DataKeys,
+    label: DataKeys,
+    options: {
+      _id: number;
+      name: number;
+    }[]
+  ) => {
     const { data, errors } = state;
 
-    let value;
+    let value: string | number | string[] | null;
 
-    console.log(data);
     if (data) {
       value = data[name];
     } else {
@@ -114,12 +171,11 @@ const TimeEntryForm = (props) => {
     );
   };
 
-  const renderInput = (name, label, type = "text") => {
+  const renderInput = (name: DataKeys, label: DataKeys, type = "text") => {
     const { data, errors } = state;
 
     let value;
 
-    console.log(data);
     if (data) {
       value = data[name];
     } else {
@@ -140,7 +196,8 @@ const TimeEntryForm = (props) => {
 
   const doSubmit = async () => {
     const data = state.data;
-    let rollBackMinutes = parseInt(data.hours) * 60 + parseInt(data.minutes);
+    let rollBackMinutes =
+      parseInt(data.hours.toString()) * 60 + parseInt(data.minutes.toString());
 
     // let rollback = false;
     // if (rollBackMinutes) rollback = true;
@@ -156,22 +213,30 @@ const TimeEntryForm = (props) => {
     let resultCurrent = {};
     let resultNew;
 
+    function isAxiosError(candidate: any): candidate is AxiosError {
+      return candidate.isAxiosError === true;
+    }
+
     try {
       resultCurrent = await service.stopCurrent({ end: start });
     } catch (error) {
-      resultCurrent = {
-        status: error.response.status,
-        data: error.response.data,
-      };
+      if (isAxiosError(error) && error) {
+        resultCurrent = {
+          status: error.response?.status,
+          data: error.response?.data,
+        };
+      }
     }
 
     try {
       resultNew = await service.postNew(timeEntry);
     } catch (error) {
-      resultNew = {
-        status: error.response.status,
-        data: error.response.data,
-      };
+      if (isAxiosError(error) && error) {
+        resultNew = {
+          status: error.response?.status,
+          data: error.response?.data,
+        };
+      }
     }
 
     const result = { current: resultCurrent, new: resultNew };
@@ -184,7 +249,7 @@ const TimeEntryForm = (props) => {
     });
   };
 
-  const createArrayForOptions = (amt) => {
+  const createArrayForOptions = (amt: number) => {
     let arrayOptions = [];
     for (let i = 0; i < amt; i++) {
       arrayOptions[i] = { _id: i, name: i };

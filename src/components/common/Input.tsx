@@ -4,6 +4,9 @@ interface InputProps {
   name: any; //TODO: fix any
   label: any; //TODO: fix any
   error: any; //TODO: fix any
+  type: any; //TODO: fix any
+  value: any; //TODO: fix any
+  onChange: any; //TODO: fix any
 }
 
 const Input: React.FC<InputProps> = ({ name, label, error, ...rest }) => {
