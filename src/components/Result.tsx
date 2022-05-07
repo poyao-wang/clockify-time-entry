@@ -2,7 +2,7 @@ import React from "react";
 import JSONPretty from "react-json-pretty";
 import { RouteComponentProps } from "react-router-dom";
 
-type ResultProps = RouteComponentProps<{}, {}, { data: any }>;
+type ResultProps = RouteComponentProps<{}, {}, any>;
 
 const Result: React.FC<ResultProps> = (props) => {
   const state = props.location;
