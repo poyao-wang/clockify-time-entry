@@ -1,6 +1,6 @@
-import Joi, { ObjectSchema } from "joi";
+import Joi from "joi";
 import queryString from "query-string";
-import React, { EventHandler, FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
 import TimeEntryServices from "../services/TimeEntryServices";
 
@@ -41,11 +41,11 @@ const TimeEntryForm = (props: RouteComponentProps) => {
     description: descriptionInit,
   } = queryString.parse(props.location.search);
 
-  const schema = Joi.object({
+  const schema: Joi.ObjectSchema<any> = Joi.object({
     projectId: Joi.string().optional(),
     taskId: Joi.string().optional(),
     tagId: Joi.string().optional(),
-    description: Joi.optional(),
+    description: Joi.string().optional(),
     hours: Joi.number().required(),
     minutes: Joi.number().required(),
   });
@@ -73,29 +73,24 @@ const TimeEntryForm = (props: RouteComponentProps) => {
   });
 
   const validate = () => {
-    const options = { abortEarly: false };
     const { error } = schema.validate(state.data);
     if (!error) return null;
 
     const errors: Errors = {};
     for (let item of error.details)
       errors[item.path[0] as keyof Errors] = item.message;
+
     return errors;
   };
 
-  const validateProperty = ({
-    name,
-    value,
-  }: {
-    name: string | number;
-    value: any;
-  }) => {
+  const validateProperty = ({ name, value }: { name: string; value: any }) => {
     const obj = { [name]: value };
-    const localSchema = { [name]: schema[name as keyof typeof schema] };
-    console.log(schema);
-    if (Joi.isSchema(localSchema)) {
-      const { error } = localSchema.validate(obj);
-      return error ? error.details[0].message : null;
+    const propSchema = schema.extract(name);
+    if (Joi.isSchema(propSchema)) {
+      const validateResult = propSchema.validate(obj[name]);
+      return validateResult.error
+        ? validateResult.error.details[0].message
+        : null;
     }
   };
 
@@ -114,7 +109,7 @@ const TimeEntryForm = (props: RouteComponentProps) => {
   };
 
   const handleChange = ({ currentTarget: input }: any) => {
-    const errors = { ...state.errors }; //TODO: Error messages not shown problem
+    const errors = { ...state.errors };
     const errorMessage = validateProperty(input);
     if (errorMessage) errors[input.name as keyof Errors] = errorMessage;
     else delete errors[input.name as keyof Errors];
@@ -260,6 +255,10 @@ const TimeEntryForm = (props: RouteComponentProps) => {
 
   const optionsHours = createArrayForOptions(25);
   const optionsMinutes = createArrayForOptions(60);
+
+  useEffect(() => {
+    console.log(state.errors);
+  }, [state]);
 
   return (
     <div>
