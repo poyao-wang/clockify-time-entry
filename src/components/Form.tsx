@@ -33,6 +33,18 @@ type DataKeys =
   | "hours"
   | "minutes";
 
+interface State {
+  data: {
+    projectId: string | string[] | null;
+    taskId: string | string[] | null;
+    tagId: string | string[] | null;
+    description: string | string[] | null;
+    hours: number;
+    minutes: number;
+  };
+  errors: Errors;
+}
+
 const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const {
     projectId: projectIdInit,
@@ -50,17 +62,7 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     minutes: Joi.number().required(),
   });
 
-  const [state, setState] = useState<{
-    data: {
-      projectId: string | string[] | null;
-      taskId: string | string[] | null;
-      tagId: string | string[] | null;
-      description: string | string[] | null;
-      hours: number;
-      minutes: number;
-    };
-    errors: Errors;
-  }>({
+  const [state, setState] = useState<State>({
     data: {
       projectId: projectIdInit,
       taskId: taskIdInit,
