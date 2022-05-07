@@ -1,8 +1,8 @@
 import { Route, Redirect, Switch } from "react-router-dom";
-import React, { Component } from "react";
+import React from "react";
 
 import Result from "./components/Result";
-import TimeEntry from "./components/timeEntry";
+import TimeEntry from "./components/TimeEntry";
 
 import "./App.css";
 
