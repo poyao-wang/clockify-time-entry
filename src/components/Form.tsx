@@ -25,14 +25,6 @@ type Errors = {
   minutes?: any;
 };
 
-type DataKeys =
-  | "projectId"
-  | "taskId"
-  | "tagId"
-  | "description"
-  | "hours"
-  | "minutes";
-
 interface Data {
   projectId: string | string[] | null;
   taskId: string | string[] | null;
@@ -141,8 +133,8 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   };
 
   const renderSelect = (
-    name: DataKeys,
-    label: DataKeys,
+    name: keyof Data,
+    label: keyof Data,
     options: {
       _id: number;
       name: number;
@@ -170,7 +162,7 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     );
   };
 
-  const renderInput = (name: DataKeys, label: DataKeys, type = "text") => {
+  const renderInput = (name: keyof Data, label: keyof Data, type = "text") => {
     const { data, errors } = state;
 
     let value;
