@@ -1,12 +1,15 @@
 import React from "react";
 
+export interface OptionProps {
+  _id: number;
+  name: number;
+  value: number;
+}
+
 interface SelectProps {
   name: any; //TODO: fix any
   label: any; //TODO: fix any
-  options: {
-    _id: number;
-    name: number;
-  }[]; //TODO: fix any
+  options: OptionProps[];
   error: any; //TODO: fix any
   value: any; //TODO: fix any
   onChange: any; //TODO: fix any
@@ -23,9 +26,8 @@ const Select: React.FC<SelectProps> = ({
     <div className="form-group">
       <label htmlFor={name}>{label}</label>
       <select name={name} id={name} {...rest} className="form-control">
-        <option value="" />
         {options.map((option) => (
-          <option key={option._id} value={option._id}>
+          <option key={option._id} value={option.value}>
             {option.name}
           </option>
         ))}

@@ -5,7 +5,7 @@ import React, { FormEvent, useEffect, useState } from "react";
 import TimeEntryServices from "../services/TimeEntryServices";
 
 import config from "../config.json";
-import Select from "./common/Select";
+import Select, { OptionProps } from "./common/Select";
 import Input from "./common/Input";
 import { RouteComponentProps } from "react-router-dom";
 import { AxiosError } from "axios";
@@ -159,10 +159,7 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const renderSelect = (
     name: keyof Data,
     label: keyof Data,
-    options: {
-      _id: number;
-      name: number;
-    }[]
+    options: OptionProps[]
   ) => {
     const { data, errors } = state;
 
@@ -260,7 +257,7 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const createArrayForOptions = (amt: number) => {
     let arrayOptions = [];
     for (let i = 0; i < amt; i++) {
-      arrayOptions[i] = { _id: i, name: i };
+      arrayOptions[i] = { _id: i, name: i, value: i };
     }
 
     return arrayOptions;
