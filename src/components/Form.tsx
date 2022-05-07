@@ -75,6 +75,19 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     errors: {},
   });
 
+  const [timeLoaded, setTimeLoaded] = useState(
+    new Date(new Date().setSeconds(0, 0))
+  );
+  const timeLoadedYear = timeLoaded.getFullYear();
+  const timeLoadedMonth = timeLoaded.getMonth();
+  const timeLoadedDate = timeLoaded.getDate();
+  const timeLoadedHours = timeLoaded.getHours();
+  const timeLoadedMinutes = timeLoaded.getMinutes();
+
+  const [entryStartTime, setEntryStartTime] = useState(timeLoaded);
+  const [rollBackHours, setRollBackHours] = useState(0);
+  const [rollBackMinutes, setRollBackMinutes] = useState(0);
+
   const validate = () => {
     const { error } = schema.validate(state.data);
     if (!error) return null;
@@ -89,6 +102,10 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const validateProperty = ({ name, value }: { name: string; value: any }) => {
     const obj = { [name]: value };
     const propSchema = schema.extract(name);
+
+    if (name === "hours") setRollBackHours(value);
+    if (name === "minutes") setRollBackMinutes(value);
+
     if (Joi.isSchema(propSchema)) {
       const validateResult = propSchema.validate(obj[name]);
       return validateResult.error
@@ -194,19 +211,12 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
 
   const doSubmit = async () => {
     const data = state.data;
-    let rollBackMinutes =
-      parseInt(data.hours.toString()) * 60 + parseInt(data.minutes.toString());
-
-    // let rollback = false;
-    // if (rollBackMinutes) rollback = true;
-
-    const now = new Date().setSeconds(0, 0);
 
     const description = data.description;
     const tagIds = [data.tagId];
     const projectId = data.projectId;
     const taskId = data.taskId;
-    const start = new Date(now - rollBackMinutes * 60 * 1000);
+    const start = entryStartTime;
     const timeEntry = { start, description, projectId, taskId, tagIds };
     let resultCurrent = {};
     let resultNew;
@@ -260,8 +270,12 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const optionsMinutes = createArrayForOptions(60);
 
   useEffect(() => {
-    console.log(state.errors);
-  }, [state]);
+    const minutes = rollBackHours * 60 + rollBackMinutes;
+    const newEntryTimeStamp = timeLoaded.valueOf() - minutes * 60 * 1000;
+    const newEntryDate = new Date(newEntryTimeStamp);
+
+    setEntryStartTime(newEntryDate);
+  }, [rollBackHours, rollBackMinutes]);
 
   return (
     <div>
@@ -290,8 +304,14 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
             <div className="col">{renderInput("tagId", "tagId")}</div>
           </div>
         </div>
-        {/* {renderInput("hours", "hours")}
-          {renderInput("minutes", "minutes")} */}
+        <div>
+          {timeLoadedYear}/{timeLoadedMonth}/{timeLoadedDate} {timeLoadedHours}:
+          {timeLoadedMinutes}
+        </div>
+        <div>{timeLoaded.toLocaleString()}</div>
+        <div>{entryStartTime.toLocaleString()}</div>
+        <div>rollBackMinutes: {rollBackMinutes}</div>
+        <div>rollBackHours: {rollBackHours}</div>
       </form>
     </div>
   );
