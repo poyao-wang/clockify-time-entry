@@ -33,7 +33,7 @@ type DataKeys =
   | "hours"
   | "minutes";
 
-const TimeEntryForm = (props: RouteComponentProps) => {
+const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const {
     projectId: projectIdInit,
     taskId: taskIdInit,
