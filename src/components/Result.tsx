@@ -1,7 +1,5 @@
-import queryString from "query-string";
-import React, { Component } from "react";
+import React from "react";
 import JSONPretty from "react-json-pretty";
-import TimeEntry from "./timeEntry";
 import { RouteComponentProps } from "react-router-dom";
 
 type ResultProps = RouteComponentProps<{}, {}, { data: any }>;
