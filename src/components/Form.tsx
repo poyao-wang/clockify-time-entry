@@ -47,7 +47,14 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     description: descriptionInit,
   } = queryString.parse(props.location.search);
 
-  const schema: Joi.ObjectSchema<any> = Joi.object({
+  const schema: Joi.ObjectSchema<{
+    projectId: Joi.StringSchema;
+    taskId: Joi.StringSchema;
+    tagId: Joi.StringSchema;
+    description: Joi.StringSchema;
+    hours: Joi.NumberSchema;
+    minutes: Joi.NumberSchema;
+  }> = Joi.object({
     projectId: Joi.string().optional(),
     taskId: Joi.string().optional(),
     tagId: Joi.string().optional(),
