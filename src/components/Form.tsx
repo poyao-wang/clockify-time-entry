@@ -33,15 +33,17 @@ type DataKeys =
   | "hours"
   | "minutes";
 
+interface Data {
+  projectId: string | string[] | null;
+  taskId: string | string[] | null;
+  tagId: string | string[] | null;
+  description: string | string[] | null;
+  hours: number;
+  minutes: number;
+}
+
 interface State {
-  data: {
-    projectId: string | string[] | null;
-    taskId: string | string[] | null;
-    tagId: string | string[] | null;
-    description: string | string[] | null;
-    hours: number;
-    minutes: number;
-  };
+  data: Data;
   errors: Errors;
 }
 
