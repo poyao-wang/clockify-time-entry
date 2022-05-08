@@ -78,6 +78,7 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
   const [timeLoaded, setTimeLoaded] = useState(
     new Date(new Date().setSeconds(0, 0))
   );
+  // const [timeLoaded, setTimeLoaded] = useState(new Date(2022, 5, 8, 0, 0));
   const timeLoadedYear = timeLoaded.getFullYear();
   const timeLoadedMonth = timeLoaded.getMonth();
   const timeLoadedDate = timeLoaded.getDate();
@@ -86,7 +87,9 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
 
   const [entryStartTime, setEntryStartTime] = useState(timeLoaded);
   const [rollBackHours, setRollBackHours] = useState(0);
-  const [rollBackMinutes, setRollBackMinutes] = useState(0);
+  const [rollBackMinutes, setRollBackMinutes] = useState(
+    timeLoadedMinutes % 15
+  );
 
   const validate = () => {
     const { error } = schema.validate(state.data);
@@ -103,8 +106,8 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     const obj = { [name]: value };
     const propSchema = schema.extract(name);
 
-    if (name === "hours") setRollBackHours(value);
-    if (name === "minutes") setRollBackMinutes(value);
+    if (name === "hours") setRollBackHours(+value);
+    if (name === "minutes") setRollBackMinutes(+value);
 
     if (Joi.isSchema(propSchema)) {
       const validateResult = propSchema.validate(obj[name]);
@@ -254,17 +257,61 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     });
   };
 
-  const createArrayForOptions = (amt: number) => {
+  const zeroPad = (num: number, places: number) =>
+    String(num).padStart(places, "0");
+
+  const createArrayForOptionsHours = (amt: number) => {
+    const currentMinutes = rollBackMinutes;
+    const nameGeneration = (i: number) => {
+      const minutes = i * 60 + currentMinutes;
+      const calcStartTime = new Date(
+        timeLoaded.valueOf() - minutes * 60 * 1000
+      );
+      const hoursText = zeroPad(calcStartTime.getHours(), 2);
+      const minutesText = zeroPad(calcStartTime.getMinutes(), 2);
+      const calcStartTimeText = " (" + hoursText + ":" + minutesText + ")";
+      return zeroPad(i, 2) + calcStartTimeText;
+    };
+
     let arrayOptions = [];
     for (let i = 0; i < amt; i++) {
-      arrayOptions[i] = { _id: i, name: i, value: i };
+      arrayOptions[i] = { _id: i, name: nameGeneration(i), value: i };
     }
 
     return arrayOptions;
   };
 
-  const optionsHours = createArrayForOptions(25);
-  const optionsMinutes = createArrayForOptions(60);
+  const createArrayForOptionsMinutes = () => {
+    const currentMinutes = timeLoadedMinutes;
+    const reminders15 = currentMinutes % 15;
+
+    const minutesEvery15Minutes = (i: number) => i * 15 + reminders15;
+    const nameGeneration = (i: number) => {
+      const minutesForOption = minutesEvery15Minutes(i);
+      const minutes = rollBackHours * 60 + minutesForOption;
+      const calcStartTime = new Date(
+        timeLoaded.valueOf() - minutes * 60 * 1000
+      );
+      const hoursText = zeroPad(calcStartTime.getHours(), 2);
+      const minutesText = zeroPad(calcStartTime.getMinutes(), 2);
+      const calcStartTimeText = " (" + hoursText + ":" + minutesText + ")";
+      return zeroPad(minutesForOption, 2) + calcStartTimeText;
+    };
+
+    let arrayOptions: OptionProps[] = [];
+    for (let i = 0; i < 5; i++) {
+      arrayOptions.push({
+        _id: i,
+        name: nameGeneration(i),
+        value: minutesEvery15Minutes(i),
+      });
+    }
+
+    return arrayOptions;
+  };
+
+  const optionsHours = createArrayForOptionsHours(25);
+  const optionsMinutes = createArrayForOptionsMinutes();
 
   useEffect(() => {
     const minutes = rollBackHours * 60 + rollBackMinutes;
@@ -278,15 +325,30 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     <div>
       <h1>New Time Entry</h1>
       <form onSubmit={handleSubmit}>
-        <div className="m-2">{renderButton("Submit")}</div>
         <div className="container">
           <div className="row">
             <div className="col">
-              {" "}
+              <div className="m-2">{renderButton("Submit")}</div>
+            </div>
+            <div className="col">
+              <p className="m-0">Start Time</p>
+              <p className="m-0">
+                {entryStartTime.toLocaleString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  weekday: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </p>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col">
               {renderSelect("hours", "hours", optionsHours)}
             </div>
             <div className="col">
-              {" "}
               {renderSelect("minutes", "minutes", optionsMinutes)}
             </div>
           </div>
@@ -301,14 +363,23 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
             <div className="col">{renderInput("tagId", "tagId")}</div>
           </div>
         </div>
-        <div>
-          {timeLoadedYear}/{timeLoadedMonth}/{timeLoadedDate} {timeLoadedHours}:
-          {timeLoadedMinutes}
-        </div>
-        <div>{timeLoaded.toLocaleString()}</div>
-        <div>{entryStartTime.toLocaleString()}</div>
-        <div>rollBackMinutes: {rollBackMinutes}</div>
-        <div>rollBackHours: {rollBackHours}</div>
+        {/* For debug  */}
+        {/* <div> 
+          <div>
+            {timeLoadedYear}/{timeLoadedMonth}/{timeLoadedDate}{" "}
+            {timeLoadedHours}:{timeLoadedMinutes}
+          </div>
+          <div>{timeLoaded.toLocaleString()}</div>
+          <div>rollBackMinutes: {rollBackMinutes}</div>
+          <div>rollBackHours: {rollBackHours}</div>
+          <div>
+            {createArrayForOptionsMinutes().map((item) => (
+              <div>
+                id:{item._id} name:{item.name} value:{item.value}
+              </div>
+            ))}
+          </div>
+        </div> */}
       </form>
     </div>
   );

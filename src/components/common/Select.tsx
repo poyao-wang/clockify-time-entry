@@ -2,7 +2,7 @@ import React from "react";
 
 export interface OptionProps {
   _id: number;
-  name: number;
+  name: string;
   value: number;
 }
 
