@@ -55,10 +55,10 @@ const TimeEntryForm: React.FC<RouteComponentProps> = (props) => {
     hours: Joi.NumberSchema;
     minutes: Joi.NumberSchema;
   }> = Joi.object({
-    projectId: Joi.string().optional(),
-    taskId: Joi.string().optional(),
-    tagId: Joi.string().optional(),
-    description: Joi.string().optional(),
+    projectId: Joi.string().allow("").optional(),
+    taskId: Joi.string().allow("").optional(),
+    tagId: Joi.string().allow("").optional(),
+    description: Joi.string().allow("").optional(),
     hours: Joi.number().required(),
     minutes: Joi.number().required(),
   });
